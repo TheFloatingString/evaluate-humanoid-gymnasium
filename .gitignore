@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Jupyter Notebook tmp folder
+.ipynb_checkpoints*
