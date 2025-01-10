@@ -7,10 +7,58 @@ import numpy as np
 
 from src.modified_env import ModifiedHumanoidEnv
 
+### SELECT PARAMETERS
+TOTAL_TIMESTEPS = 2e4
+
+
+def generate_log_folderpath(is_position: bool, is_velocity: bool, is_com_inertia: bool, is_com_velocity: bool, is_actuator_forces: bool, is_external_contact_forces: bool) -> str:
+    folderpath = "tmp/v2/sb3"
+    if is_position:
+        folderpath += "-position"
+    if is_velocity:
+        folderpath += "-velocity"
+    if is_com_inertia:
+        folderpath += "-com_inertia"
+    if is_com_velocity:
+        folderpath += "-com_velocity"
+    if is_actuator_forces:
+        folderpath += "-actuator_forces"
+    if is_external_contact_forces:
+        folderpath += "-external_contact_forces"
+    folderpath += '/'
+    return folderpath
+    
 
 def run_experiment(is_position: bool, is_velocity: bool, is_com_inertia: bool, is_com_velocity: bool, is_actuator_forces: bool, is_external_contact_forces: bool):
+
+    log_folderpath = generate_log_folderpath(is_position=is_position, is_velocity=is_velocity, is_com_inertia=is_com_inertia, is_com_velocity=is_com_velocity,  is_actuator_forces=is_actuator_forces, is_external_contact_forces=is_external_contact_forces)
+
+    new_logger = configure(log_folderpath, ["stdout", "csv", "tensorboard"])
+
+    list_of_obs = list()
+    if is_position:
+        list_of_obs.append("position")
+    if is_velocity: 
+        list_of_obs.append("velocity")
+    if is_com_inertia:
+        list_of_obs.append("com_inertia")
+    if is_com_velocity:
+        list_of_obs.append("com_velocity")
+    if is_actuator_forces:
+        list_of_obs.append("actuator_forces")
+    if is_external_contact_forces:
+        list_of_obs.append("external_contact_forces")
+
+    mod_env = ModifiedHumanoidEnv(list_of_obs=list_of_obs)
+
+    model = PPO("MlpPolicy", mod_env, verbose=0)
+    model.set_logger(new_logger)
+    model.learn(total_timesteps=TOTAL_TIMESTEPS)
+
     return True
 
+counter = 0
+total_exp = 2**6
 
 for is_position in [True, False]:
     for is_velocity in [True, False]:
@@ -18,31 +66,7 @@ for is_position in [True, False]:
             for is_com_velocity in [True, False]:
                 for is_actuator_forces in [True, False]:
                     for is_external_contact_forces in [True, False]:
+                        print(f"Experiment run: {counter}/{total_exp}")
                         run_experiment(is_position=is_position, is_velocity=is_velocity, is_com_inertia=is_com_inertia, is_com_velocity=is_com_velocity,  is_actuator_forces=is_actuator_forces, is_external_contact_forces=is_external_contact_forces)
+                        counter += 1
                         
-
-
-
-raise KeyError
-
-tmp_path = "/tmp/sb3_log/"
-# set up logger
-new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
-
-mod_env = ModifiedHumanoidEnv(list_of_obs=["position", "external_contact_forces"])
-
-model = PPO("MlpPolicy", mod_env, verbose=1)
-model.set_logger(new_logger)
-model.learn(total_timesteps=2e4)
-
-# vec_env = model.get_env()
-# obs = vec_env.reset()
-
-# avg_reward = 0
-
-# for i in range(1000):
-#     action, _state = model.predict(obs, deterministic=True)
-#     obs, reward, done, info = vec_env.step(action)
-#     avg_reward += reward/1000
-
-# print(avg_reward)
