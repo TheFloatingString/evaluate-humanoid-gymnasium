@@ -2,7 +2,7 @@ import gymnasium as gym
 
 from stable_baselines3.common.logger import configure
 
-from stable_baselines3 import PPO
+from stable_baselines3 import SAC
 import numpy as np
 
 from src.modified_env import ModifiedHumanoidEnv
@@ -13,7 +13,7 @@ TOTAL_TIMESTEPS = 2e4
 
 
 def generate_log_folderpath(is_position: bool, is_velocity: bool, is_com_inertia: bool, is_com_velocity: bool, is_actuator_forces: bool, is_external_contact_forces: bool) -> str:
-    folderpath = "tmp/v3/ppo/sb3_ppo_humanoid-"
+    folderpath = "tmp/v3/sac/sb3_sac_humanoid-"
     if is_position:
         folderpath += "-position"
     if is_velocity:
@@ -52,7 +52,7 @@ def run_experiment(is_position: bool, is_velocity: bool, is_com_inertia: bool, i
 
     mod_env = ModifiedHumanoidEnv(list_of_obs=list_of_obs)
 
-    model = PPO("MlpPolicy", mod_env, verbose=0)
+    model = SAC("MlpPolicy", mod_env, verbose=0)
     model.set_logger(new_logger)
     model.learn(total_timesteps=TOTAL_TIMESTEPS)
 
